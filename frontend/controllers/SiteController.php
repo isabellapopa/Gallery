@@ -292,10 +292,12 @@ class SiteController extends Controller
     public function actionPhoto()
     {
         $model = new Photo();
-        $fileName = '';
+        $fileName = 'file';
         $uploadPath = 'frontend/images';
 
-        if (isset($_FILES[$fileName])) {
+
+
+        if (isset($_FILES['file'])) {
             $file = \yii\web\UploadedFile::getInstanceByName($fileName);
 
             if ($file->saveAs($uploadPath . '/' . $file->name)) {
@@ -306,7 +308,6 @@ class SiteController extends Controller
 
 
         }
-
         return $this->render('photo',[
             'model' => $model
     ]);

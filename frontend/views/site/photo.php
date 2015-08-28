@@ -23,6 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'removedfile' => "function(file){alert(file.name + ' is removed')}"
                 ]
             ],
+            'uploadUrl' => \yii\helpers\Url::to(['photo'])
         ]);
     ?>
 </div>
