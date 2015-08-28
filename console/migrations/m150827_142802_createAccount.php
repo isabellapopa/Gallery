@@ -3,23 +3,24 @@
 use yii\db\Schema;
 use yii\db\Migration;
 
-class m150826_080326_createCont extends Migration
+class m150827_142802_createAccount extends Migration
 {
     public function up()
     {
         $this->createTable('account', [
             'id' => $this->primaryKey(),
-            'accountType' => $this->string()->notNull(),
-            'userId' => $this->smallInteger()->notNull(),
-            'cardName' => $this-> string() ->notNull(),
-            'activeAccount' => $this->smallInteger(),
+            'userId' => $this->smallInteger(),
+            'cardType' => $this->string()->notNull(),
+            'accountType' => $this->string(),
+            'monthAccountDisable' => $this->smallInteger()->notNull(),
+            'yearAccountDisable' => $this->string()->defaultValue("2015")
         ] );
 
     }
 
     public function down()
     {
-       $this->dropTable('cont');
+       $this->dropTable('account');
     }
 
     /*

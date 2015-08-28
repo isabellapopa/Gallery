@@ -14,7 +14,10 @@ class RbacController extends Controller
 
         $auth = Yii::$app->authManager;
         $createAlbum = $auth->createPermission('createAlbum');
-        $createAlbum->description = 'Create more than 10 albums';
+        $createAlbum->description = 'Create more than 1 album';
+        $auth->add($createAlbum);
+        $createPhoto = $auth->createPermission('createPhoto');
+        $createAlbum->description = 'Upload max 10 photos';
         $auth->add($createAlbum);
         $admin = $auth->createRole('admin');
         $auth->add($admin);

@@ -2,6 +2,9 @@
 namespace frontend\controllers;
 
 use Yii;
+
+
+
 use common\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
@@ -16,6 +19,9 @@ use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
+use yii\helpers\VarDumper;
+use common\models\Albums;
+use common\models\Photo;
 
 /**
  * Site controller
@@ -66,6 +72,7 @@ class SiteController extends Controller
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
+
         ];
     }
 
@@ -154,6 +161,7 @@ class SiteController extends Controller
     {
         $model = new SignupForm();
         if ($model->load(Yii::$app->request->post())) {
+            $model->assignRole('freeUser');
             if ($user = $model->signup()) {
                 if (Yii::$app->getUser()->login($user)) {
                     return $this->goHome();
@@ -215,12 +223,54 @@ class SiteController extends Controller
         ]);
     }
     public function actionPremium(){
+
+
         $model = new Premium();
+        $type = [
+            'visa' => 'Visa',
+            'maestro' => 'Maestro',
+            'mastercard' => 'MasterCard'
+        ];
+        $month = [
+            '1' => 'January',
+            '2' => 'February',
+            '3' => 'March',
+            '4'=> 'April',
+            '5' => 'May',
+            '6' => 'June',
+            '7' => 'July',
+            '8' => 'August',
+            '9' => 'September',
+            '10' => 'October',
+            '11' => 'November',
+            '12' => 'December',
+        ];
+        $years = [];
+        $currYear = intval(date('Y'));
+        for(; $currYear <= 2025; $currYear++) {
+            $years[$currYear] = $currYear;
+        }
 
+        if (isset($_POST['Premium'])) {
+            $model->cardType= $_POST['Premium']['cardType'];
+            $model->monthAccountDisable = $_POST['Premium']['monthAccountDisable'];
+            $model->yearAccountDisable = $_POST['Premium']['yearAccountDisable'];
+            $model->userId=Yii::$app->user->identity->getId();
+            $model->accountType = 'premium';
+            if ($model->save()) {
+                $model->assignRole('premiumUser');
+                $this->redirect(['index']);
+            } else {
+                VarDumper::dump($model->getErrors(), 10, true); exit;
+            }
+        }
         return $this->render('premium',[
-        'model' => $model]);
+            'model' => $model,
+            'cardType' => $type,
+            'years' => $years,
+            'month' =>$month,
+        ]);
     }
-
     public function actionUpload()
     {
         $modelUpload = new Upload();
@@ -238,4 +288,56 @@ class SiteController extends Controller
             'modelUpload' => $modelUpload,
         ]);
     }
+
+    public function actionPhoto()
+    {
+        $model = new Photo();
+        $fileName = '';
+        $uploadPath = 'frontend/images';
+
+        if (isset($_FILES[$fileName])) {
+            $file = \yii\web\UploadedFile::getInstanceByName($fileName);
+
+            if ($file->saveAs($uploadPath . '/' . $file->name)) {
+                    $model->photoName = $fileName;
+                    echo \yii\helpers\Json::encode($file);
+                VarDumper::dump($model->getErrors(), 10, true); exit;
+            }
+
+
+        }
+
+        return $this->render('photo',[
+            'model' => $model
+    ]);
+
+    }
+
+    public function actionCreateAlbum()
+    {
+        $model = new Albums();
+        if (isset($_POST['Albums'])) {
+            $model->name = $_POST['Albums']['name'];
+            $model->description = $_POST['Albums']['description'];
+            $model->tag = $_POST['Albums']['tag'];
+            $model->userId = Yii::$app->user->getId();
+            if ($model->save() ) {
+                $this->redirect(['albums']);
+            }
+        }
+
+        return $this->render('createAlbum', [
+            'model' => $model,
+        ]);
+    }
+    public function actionAlbums()
+        {
+            $albums = Albums::find()->all();
+            return $this->render('albums', [
+                'albums' => $albums,
+            ]);
+    }
+
+
+
 }

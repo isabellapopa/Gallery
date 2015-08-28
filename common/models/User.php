@@ -221,7 +221,15 @@ class User extends ActiveRecord implements IdentityInterface
                 $roles[$role->name] = strtoupper($role->name);
             }
         }
-
         return $roles;
     }
+
+
+    public function assignRole($role){
+
+        $auth = Yii::$app->authManager;
+        $roleClass = $auth->getRole($role);
+        $auth->assign($roleClass, $this->getId());
+    }
+
 }

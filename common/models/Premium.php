@@ -4,7 +4,6 @@ namespace common\models;
 use Yii;
 
 use yii\db\ActiveRecord;
-
 class Premium extends ActiveRecord
 {
     public static function tableName()
@@ -15,9 +14,9 @@ class Premium extends ActiveRecord
     public function rules()
     {
         return [
-            [['cardName' , 'accountType'], 'string'],
-            [['userId', 'activeAccount'], 'integer'],
-            [['cardName'], 'string', 'max' => 50],
+            [['cardType', 'yearAccountDisable', 'accountType'], 'string'],
+            [['userId', 'monthAccountDisable'], 'integer'],
+            [['cardType'], 'string', 'max' => 50],
         ];
     }
 
@@ -26,9 +25,19 @@ class Premium extends ActiveRecord
         return [
             'id' => 'Cont ID',
             'userId' => 'User ID',
-            'cardName' => 'Card Name',
-            'activeAccount' => 'Active Account',
+            'cardType' => 'Card Type',
+            'monthAccountDisable' => 'Month Account Disable',
+            'yearAccountDisable' => 'Year Account Disable',
+            'accountType' => 'Account Type'
+
         ];
+    }
+
+    public function assignRole($role){
+
+        $auth = Yii::$app->authManager;
+        $roleClass = $auth->getRole($role);
+        $auth->assign($roleClass, $this->userId);
     }
 
 }

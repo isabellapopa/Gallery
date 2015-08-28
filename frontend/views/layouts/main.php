@@ -48,6 +48,10 @@ AppAsset::register($this);
             'items' => [
                 ['label' => 'Change profile picture', 'url' => ['/site/upload'],
                 ],
+                ['label' => 'Albums', 'url' => ['/site/albums'],
+                ],
+                ['label' => 'Create Album', 'url' => ['/site/create-album'],
+                ],
                 ['label' => 'Make your account premium', 'url' => ['/site/premium'],
                 ],
                     [
