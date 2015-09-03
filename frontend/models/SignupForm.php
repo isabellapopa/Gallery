@@ -88,6 +88,11 @@ class SignupForm extends Model
                 $profile->address = $this->address;
                 $profile->phone = $this->phone;
                 if($profile->save()){
+                    if(Yii::$app->user->id !=1){
+                        $auth = Yii::$app->authManager;
+                        $freeUser = $auth->getRole('freeUser');
+                        $auth->assign($freeUser, $user->getId());
+                    }
                     return $user;
                 }
             }

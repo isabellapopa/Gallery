@@ -3,21 +3,23 @@
 use yii\db\Schema;
 use yii\db\Migration;
 
-class m150825_132817_createPhoto extends Migration
+class m150831_102041_createLike extends Migration
 {
     public function up()
     {
-        $this->createTable('photo', [
+        $this->createTable('like', [
             'id' => $this->primaryKey(),
-            'albumId' => $this->smallInteger()->notNull(),
+            'photoId' => $this->smallInteger()->notNull(),
             'userId' => $this ->smallInteger()->notNull(),
-            'photoName' => $this-> string() ->notNull(),
+            'likePhoto' => $this->string(),
         ] );
+
     }
 
     public function down()
     {
-       $this->dropTable('photo');
+       $this->dropTable('like');
+
     }
 
     /*

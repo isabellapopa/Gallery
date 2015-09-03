@@ -4,6 +4,17 @@ namespace common\models;
 use Yii;
 use yii\db\ActiveRecord;
 
+/**
+ * Album model
+ *
+ * @property integer $id
+ * @property string $name
+ * @property string $description
+ * @property string $tag
+ * @property integer $numberPhotos
+ * @property integer $userId
+ */
+
 class Albums extends ActiveRecord
 {
 
@@ -31,6 +42,13 @@ class Albums extends ActiveRecord
             'description' => 'Description Album',
             'numberPhotos' => 'Number Photos'
         ];
+    }
+    public function getId(){
+        return $this->id;
+    }
+    public function getPhotos()
+    {
+        return $this->hasMany(Photo::className(), ['albumId' => 'id']);
     }
 
 }

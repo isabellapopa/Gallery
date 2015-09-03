@@ -1,10 +1,11 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\Comment;
 use Yii;
 
 
-
+use yii\data\ActiveDataProvider;
 use common\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
@@ -22,6 +23,8 @@ use yii\filters\AccessControl;
 use yii\helpers\VarDumper;
 use common\models\Albums;
 use common\models\Photo;
+use common\models\Like;
+use yii\web\HttpException;
 
 /**
  * Site controller
@@ -44,7 +47,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'like'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -147,10 +150,63 @@ class SiteController extends Controller
      *
      * @return mixed
      */
-    public function actionAbout()
+
+    // Photos Gallery for all users
+    public function actionGallery()
     {
-        return $this->render('about');
+        $dataProvider = new ActiveDataProvider([
+            'query' => Albums::find()->with('photos'),
+        ]);
+
+        return $this->render('gallery', [
+            'listDataProvider' => $dataProvider,
+        ]);
     }
+
+    public function actionSaveComment()
+    {
+        /**
+         * @var Comment $model
+         */
+        if (Yii::$app->request->isPost) {
+            if (isset($_POST['photoId']) && isset($_POST['Comment']) && isset($_POST['Comment']['commentText'])) {
+                $model = new Comment();
+                $model->userId = Yii::$app->user->id;
+                $model->photoId = $_POST['photoId'];
+                $model->commentText = $_POST['Comment']['commentText'];
+                $model->save();
+            }
+        }
+
+    }
+
+    /**
+     * Save a like for a photo
+     * @params integer $_REQUEST['photoId']
+     * @return string
+     */
+    public function actionLike()
+    {
+        /**
+         * @var Like $model
+         */
+        if (isset($_REQUEST['photoId']) && $_REQUEST['photoId']) {
+            $photo = Photo::findOne($_REQUEST['photoId']);
+
+            if ($photo && !$photo->likedAlready()) {
+                $model = new Like();
+                $model->photoId = $photo->id;
+                $model->userId = Yii::$app->user->id;
+                if ($model->save()) {
+                    echo json_encode(['message' => 'liked']);
+                    Yii::$app->end();
+                }
+            }
+        }
+        echo json_encode(['message' => 'not liked']);
+        Yii::$app->end();
+    }
+
 
     /**
      * Signs user up.
@@ -161,13 +217,13 @@ class SiteController extends Controller
     {
         $model = new SignupForm();
         if ($model->load(Yii::$app->request->post())) {
-            $model->assignRole('freeUser');
             if ($user = $model->signup()) {
                 if (Yii::$app->getUser()->login($user)) {
                     return $this->goHome();
                 }
             }
         }
+
 
         return $this->render('signup', [
             'model' => $model,
@@ -222,8 +278,14 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
-    public function actionPremium(){
 
+
+    public function actionPremium()
+    {
+
+        /**
+         * @var Premium $model
+         */
 
         $model = new Premium();
         $type = [
@@ -235,7 +297,7 @@ class SiteController extends Controller
             '1' => 'January',
             '2' => 'February',
             '3' => 'March',
-            '4'=> 'April',
+            '4' => 'April',
             '5' => 'May',
             '6' => 'June',
             '7' => 'July',
@@ -247,39 +309,48 @@ class SiteController extends Controller
         ];
         $years = [];
         $currYear = intval(date('Y'));
-        for(; $currYear <= 2025; $currYear++) {
+        for (; $currYear <= 2025; $currYear++) {
             $years[$currYear] = $currYear;
         }
 
         if (isset($_POST['Premium'])) {
-            $model->cardType= $_POST['Premium']['cardType'];
+            $model->cardType = $_POST['Premium']['cardType'];
             $model->monthAccountDisable = $_POST['Premium']['monthAccountDisable'];
             $model->yearAccountDisable = $_POST['Premium']['yearAccountDisable'];
-            $model->userId=Yii::$app->user->identity->getId();
+            $model->userId = Yii::$app->user->identity->getId();
             $model->accountType = 'premium';
             if ($model->save()) {
-                $model->assignRole('premiumUser');
+                $model->assignRole('premiumUser');// when users makes a premium account they can have nelimited  albums and photoa
                 $this->redirect(['index']);
             } else {
-                VarDumper::dump($model->getErrors(), 10, true); exit;
+                VarDumper::dump($model->getErrors(), 10, true);
+                exit;
             }
         }
-        return $this->render('premium',[
+        return $this->render('premium', [
             'model' => $model,
             'cardType' => $type,
             'years' => $years,
-            'month' =>$month,
+            'month' => $month,
         ]);
     }
+
+
+    //Upload for profile picture
     public function actionUpload()
     {
+
+
+        /**
+         * @var Upload $model
+         */
         $modelUpload = new Upload();
         if (!empty($_FILES)) {
             if (Yii::$app->request->isPost) {
                 $modelUpload->userId = Yii::$app->user->getId();
                 $modelUpload->imageFile = UploadedFile::getInstance($modelUpload, 'imageFile');
                 if ($modelUpload->upload()) {
-                   echo '<img src="/images/profilePicture/' . $modelUpload->imageFile->baseName . '.' . $modelUpload->imageFile->extension . '"/>';
+                    echo '<img src="/images/profilePicture/' . $modelUpload->imageFile->baseName . '.' . $modelUpload->imageFile->extension . '"/>';
                     return $this->redirect('index');
                 }
             }
@@ -289,56 +360,129 @@ class SiteController extends Controller
         ]);
     }
 
-    public function actionPhoto()
+    //Upload for albums photos
+    public function actionPhoto($albumId)
     {
+
+        /**
+         * @var Photo $model
+         */
         $model = new Photo();
         $fileName = 'file';
-        $uploadPath = 'frontend/images';
-
-
-
+        $uploadPath = dirname(dirname(__FILE__)) . '/images';
+        $counter = 0;
         if (isset($_FILES['file'])) {
             $file = \yii\web\UploadedFile::getInstanceByName($fileName);
 
             if ($file->saveAs($uploadPath . '/' . $file->name)) {
-                    $model->photoName = $fileName;
-                    echo \yii\helpers\Json::encode($file);
-                VarDumper::dump($model->getErrors(), 10, true); exit;
+                $counter++;
+                $model->photoName = $file->name;
+                $model->albumId = $albumId;
+                $model->userId = Yii::$app->user->getId();
+                if (Yii::$app->user->hasRole('freeUser')) {
+                    if ($counter == 10) $this->redirect(['premium']);
+                    else {
+                        if ($model->save() && $counter < 10) {
+                            echo json_encode($file);
+
+                        } else {
+                            VarDumper::dump($model->getErrors(), 10, true);
+                            exit;
+                        }
+                    }
+                }else{
+                    if ($model->save()) {
+                        echo json_encode($file);
+
+                    } else {
+                        VarDumper::dump($model->getErrors(), 10, true);
+                        exit;
+                    }
+
+                }
             }
-
-
         }
-        return $this->render('photo',[
-            'model' => $model
-    ]);
+
+
+            return $this->render('photo', [
+                'model' => $model,
+                'albumId' => $albumId
+            ]);
+        }
+
+    // Delete albums photos
+    public function actionDeletePhoto($id)
+    {
+        $model = Photo::find()->where(['id' => $id])->one();
+        if ($model && $model->delete())
+            $this->redirect(['photos']);
 
     }
 
+    // Create new album
     public function actionCreateAlbum()
     {
+
+        /**
+         * @var Albums $model
+         */
         $model = new Albums();
-        if (isset($_POST['Albums'])) {
-            $model->name = $_POST['Albums']['name'];
-            $model->description = $_POST['Albums']['description'];
-            $model->tag = $_POST['Albums']['tag'];
-            $model->userId = Yii::$app->user->getId();
-            if ($model->save() ) {
-                $this->redirect(['albums']);
+        $counter=0;
+            if (isset($_POST['Albums'])) {
+                $model->name = $_POST['Albums']['name'];
+                $model->description = $_POST['Albums']['description'];
+                $model->tag = $_POST['Albums']['tag'];
+                $model->userId = Yii::$app->user->getId();
+                if ($counter < 1) {
+                    if (Yii::$app->user->hasRole('freeUser')) $counter++;
+                    else $counter = 0;
+                }
+                if ($model->save() && $counter == 0) {
+
+                    $this->redirect(['albums']);
+                }
+
+
             }
-        }
 
         return $this->render('createAlbum', [
             'model' => $model,
         ]);
     }
+
     public function actionAlbums()
-        {
-            $albums = Albums::find()->all();
-            return $this->render('albums', [
-                'albums' => $albums,
-            ]);
+    {
+        $albums = Albums::find()->all();
+        return $this->render('albums', [
+            'albums' => $albums,
+        ]);
     }
 
+    //view each user photos
+    public function actionViewPhotos()
+    {
+        $photos = Photo::find()->all();
+        $albums = Albums::find()->all();
+        return $this->render('viewPhotos', [
+            'photos' => $photos,
+            'albums' => $albums,
+        ]);
+    }
 
+    //edit user profile
+    public function actionProfile()
+    {
+
+        return $this->render('profile');
+    }
+
+    protected function findModel($id)
+    {
+        if (($model = Albums::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new HttpException(404, 'The requested page does not exist.');
+        }
+    }
 
 }

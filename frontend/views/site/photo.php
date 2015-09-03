@@ -12,22 +12,33 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
     <?php
-
+    if(Yii::$app->user->hasRole('freeUser')){
 
     echo DropZone::widget(
         [
             'options' => [
+                'maxFiles' => '10',
                 'maxFilesize' => '2',
                 'clientEvents' => [
                     'complete' => "function(file){console.log(file)}",
                     'removedfile' => "function(file){alert(file.name + ' is removed')}"
                 ]
             ],
-            'uploadUrl' => \yii\helpers\Url::to(['photo'])
+            'uploadUrl' => \yii\helpers\Url::to(['photo', 'albumId' => $albumId])
         ]);
+    }
+    if(!Yii::$app->user->hasRole('freeUser')) {
+        echo DropZone::widget(
+            [
+                'options' => [
+                    'maxFilesize' => '2',
+                    'clientEvents' => [
+                        'complete' => "function(file){console.log(file)}",
+                        'removedfile' => "function(file){alert(file.name + ' is removed')}"
+                    ]
+                ],
+                'uploadUrl' => \yii\helpers\Url::to(['photo', 'albumId' => $albumId])
+            ]);
+    }
     ?>
 </div>
-        <div class="form-group">
-            <?= Html::submitButton('Upload', ['class' => 'btn btn-primary', 'name' => 'createAlbum-button']) ?>
-
-    </div>

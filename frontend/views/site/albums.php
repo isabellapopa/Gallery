@@ -1,7 +1,5 @@
 <?php
 
-use Yii;
-
 use yii\helpers\Html;
 ?>
 
@@ -20,10 +18,9 @@ foreach ($albums as $album ){
 
                 <p><?php echo $album['tag']; ?></p>
                 <div style="color:#999;margin:1em 0">
-                    Upload photos : <?= Html::a('Photos', ['site/photo']) ?>.
-                  See your album photos :  <?= Html::a('Photos', ['site/view-photos']) ?>.
+                    Upload photos : <?= Html::a('Upload Photos', ['site/photo', 'albumId' => $album['id']]) ?>.
+                    See your album photos :  <?= Html::a('Album Photos', ['site/view-photos']) ?>.
                 </div>
-
             </div>
         </div>
         <?php

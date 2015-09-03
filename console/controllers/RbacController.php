@@ -23,6 +23,8 @@ class RbacController extends Controller
         $auth->add($admin);
         $freeUser = $auth->createRole('freeUser');
         $auth->add($freeUser);
+        $auth->addChild($freeUser , $createAlbum);
+        $auth->addChild($freeUser , $createPhoto);
         $premiumUser = $auth->createRole('premiumUser');
         $auth->add($premiumUser);
         $auth->addChild($premiumUser, $createAlbum);

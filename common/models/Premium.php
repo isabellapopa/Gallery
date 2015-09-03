@@ -2,8 +2,19 @@
 namespace common\models;
 
 use Yii;
-
 use yii\db\ActiveRecord;
+
+
+
+/**
+ * Premium model
+ *
+ * @property integer $id
+ * @property string $cardType
+ * @property string $yearAccountDisable
+ * @property integer $monthAccountDisable
+ * @property integer $userId
+ */
 class Premium extends ActiveRecord
 {
     public static function tableName()

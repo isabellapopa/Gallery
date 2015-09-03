@@ -28,15 +28,28 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => 'My Company',
+        'brandLabel' => 'My Company Administration',
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
     $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
+        ['label' => 'Backend', 'url' => ['/site/index']],
+        ['label' => 'Frontend', 'url' => 'http://www.gallery.dev'],
     ];
+
+    if(!Yii::$app->user->isGuest)
+    {
+        $menuItems[] = ['label' => 'Settings', 'items' => [
+            ['label'=> 'Users', 'url' => ['/users/index']],
+            ['label'=> 'Albums', 'url' => ['/albums/index']],
+            ['label'=> 'Photos', 'url' => ['/photos/index']],
+        ]];
+    }
+
+
+
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
     } else {
@@ -46,6 +59,7 @@ AppAsset::register($this);
             'linkOptions' => ['data-method' => 'post']
         ];
     }
+
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => $menuItems,
@@ -53,11 +67,11 @@ AppAsset::register($this);
     NavBar::end();
     ?>
 
+
     <div class="container">
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
-        <?= Alert::widget() ?>
         <?= $content ?>
     </div>
 </div>
@@ -65,7 +79,6 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>
 </footer>

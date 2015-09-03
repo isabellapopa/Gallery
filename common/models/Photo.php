@@ -4,6 +4,15 @@ namespace common\models;
 use Yii;
 use yii\db\ActiveRecord;
 
+/**
+ * Photo model
+ *
+ * @property integer $id
+ * @property string $photoName
+ * @property integer $albumId
+ * @property integer $userId
+ */
+
 class Photo extends ActiveRecord
 {
 
@@ -15,20 +24,30 @@ class Photo extends ActiveRecord
     public function rules()
     {
         return [
-            [['photoName','description','tag'], 'string'],
-            [['albumId','userId'], 'integer'],
-            [['albumId','photoName','description'], 'safe'],
+            [['photoName'], 'string'],
+            [['id','albumId','userId'], 'integer'],
+            [['albumId','photoName'], 'safe'],
             [['photoName'], 'string', 'max' => 50],
         ];
     }
 
+    /**
+     * @return \yii\db\ActiveQuery
+     *
+     */
 
 
-
-    public function getAlbum()
+    public function getAlbums()
     {
-        return $this->hasOne(Album::className(), ['id' => 'albumId']);
+        return $this->hasOne(Albums::className(), ['id' => 'albumId']);
     }
 
+    /**
+     * Check if the photo has already been liked
+     * @return bool
+     */
+    public function likedAlready(){
+        return (!Like::findOne(['photoId' => $this->id, 'userId' => Yii::$app->user->id])) ? false : true;
+    }
 
 }

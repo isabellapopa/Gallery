@@ -5,6 +5,19 @@ use Yii;
 
 use yii\db\ActiveRecord;
 
+
+/**
+ * Profile model
+ *
+ * @property integer $id
+ * @property string $lastName
+ * @property string $firstName
+ * @property string $phone
+ * @property string $address
+ * @property integer $skypeId
+ * @property integer $userId
+ */
+
 class Profile extends ActiveRecord
 {
     public static function tableName()
@@ -31,6 +44,7 @@ class Profile extends ActiveRecord
             'username' => 'Username',
             'phone' => 'Phone',
             'address' => 'Address',
+            'profilePicture' => 'Profile Picture',
         ];
     }
     /**

@@ -36,7 +36,7 @@ AppAsset::register($this);
     ]);
     $menuItems = [
         ['label' => 'Home', 'url' => ['/site/index']],
-        ['label' => 'About', 'url' => ['/site/about']],
+        ['label' => 'Gallery', 'url' => ['/site/gallery']],
         ['label' => 'Contact', 'url' => ['/site/contact']],
     ];
     if (Yii::$app->user->isGuest) {
@@ -47,6 +47,8 @@ AppAsset::register($this);
             $menuItems[]= [ 'label' => 'Account (' . Yii::$app->user->identity->username. ')',
             'items' => [
                 ['label' => 'Change profile picture', 'url' => ['/site/upload'],
+                ],
+                ['label' => 'Profile', 'url' => ['/site/profile'],
                 ],
                 ['label' => 'Albums', 'url' => ['/site/albums'],
                 ],
